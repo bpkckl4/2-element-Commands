@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>聽從二元素指令訓練</title>
+  <style>
+    :root {
+      --primary: #1e5bb0;
+      --primary-light: #e8f1fd;
+      --accent: #f59e0b;
+      --plate-border: #cbd5e1;
+      --bg: #f8fafc;
+      --card-border: #cbd5e1;
+      --text: #1e293b;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Noto Sans HK", "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px 12px 60px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* 頂部標題 */
+    header {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: #fff;
+      padding: 20px 16px;
+      border-radius: var(--radius);
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .btn-config-toggle {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: background 0.2s;
+    }
+
+    .btn-config-toggle:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* 區塊共用樣式 */
+    section {
+      background: #ffffff;
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      margin-bottom: 24px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    section h2 {
+      font-size: 1.35rem;
+      color: var(--primary);
+      margin-bottom: 16px;
+      padding-left: 12px;
+      border-left: 6px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* 第一部分：步驟說明 */
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--primary-light);
+      padding: 12px 16px;
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+      font-size: 1.05rem;
+    }
+
+    .step-num {
+      background: var(--primary);
+      color: #fff;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .highlight {
+      color: #b45309;
+      font-weight: bold;
+    }
+
+    /* 九宮格 (每行三幅圖咭) */
+    .food-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .food-card {
+      background: #fff;
+      border: 2px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    }
+
+    .food-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+      border-color: var(--primary);
+    }
+
+    .food-card:active {
+      transform: scale(0.96);
+    }
+
+    .food-img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 10px;
+      pointer-events: none;
+      margin-bottom: 8px;
+      background-color: #f1f5f9;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .food-name {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .sound-badge {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* 第三部分：大碟與指令練習 */
+    .plate-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 12px 0 24px;
+    }
+
+    .plate {
+      width: 100%;
+      max-width: 440px;
+      min-height: 280px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 50%;
+      border: 6px solid #e2e8f0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 30px;
+      position: relative;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .plate.dragover {
+      border-color: var(--accent);
+      transform: scale(1.02);
+    }
+
+    .plate-empty-hint {
+      position: absolute;
+      color: #1e293b;
+      background: rgba(255, 255, 255, 0.88);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      pointer-events: none;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      backdrop-filter: blur(2px);
+    }
+
+    /* 碟上的縮小圖卡 */
+    .plate .food-card {
+      width: 95px;
+      padding: 6px 4px;
+      margin: 0;
+      border: 2px solid var(--accent);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      animation: bounceIn 0.25s ease-out;
+    }
+
+    .plate .food-img {
+      width: 55px;
+      height: 55px;
+      margin-bottom: 2px;
+    }
+
+    .plate .food-name {
+      font-size: 0.95rem;
+    }
+
+    .plate .sound-badge {
+      display: none;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* 插槽位保持九宮格工整 */
+    .slot {
+      min-height: 155px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot.occupied {
+      border: 2px solid transparent;
+    }
+
+    /* 重設按鈕 */
+    .action-panel {
+      text-align: center;
+      margin-top: 26px;
+    }
+
+    .btn-reset {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #ffffff;
+      border: none;
+      padding: 14px 42px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-reset:hover {
+      background: linear-gradient(135deg, #f87171, #ef4444);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-reset:active {
+      transform: scale(0.96);
+    }
+
+    /* 作者設定面板 Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: #fff;
+      max-width: 650px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .modal-box h3 {
+      font-size: 1.3rem;
+      color: var(--primary);
+      margin-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    .config-field {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .config-field label {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #334155;
+    }
+
+    .config-field input {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: monospace;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 20px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 14px;
+    }
+
+    .btn-save {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-close {
+      background: #e2e8f0;
+      color: #334155;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.45rem; }
+      .btn-config-toggle { position: static; transform: none; margin-top: 10px; display: inline-block; }
+      .food-grid { gap: 8px; }
+      .food-card { padding: 8px 4px; }
+      .food-img { width: 72px; height: 72px; }
+      .food-name { font-size: 1.05rem; }
+      .plate { max-width: 320px; min-height: 220px; padding: 18px; }
+      .slot { min-height: 130px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- 首頂標題 -->
+    <header>
+      <h1>聽從二元素指令訓練</h1>
+      <button class="btn-config-toggle" onclick="openConfigModal()">⚙️ 自訂圖片網址</button>
+    </header>
+
+    <!-- 第一部分：訓練步驟的說明 -->
+    <section>
+      <h2>第一部分：訓練步驟的說明</h2>
+      <div class="steps-list">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div>家長先介紹食物名稱。</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div>
+            家長說出「<span class="highlight">我要食A</span>」的指令，如：「<span class="highlight">我要食雞蛋</span>」，讓學生按指示擺放食物於碟中。
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div>如學生未能辨認正確圖咭，家長可給予手勢提示，指出正確圖咭。</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <div>
+            當學生掌握練習後，家長可加長指令，說出「<span class="highlight">我要食A同埋B</span>」的指令，如：「<span class="highlight">我要食雞蛋同埋麵包</span>」。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第二部分：介紹食物 -->
+    <section>
+      <h2>
+        第二部分：介紹食物 
+        <span style="font-size:0.9rem; color:#64748b; font-weight:normal;">（點擊相片播放廣東話發音）</span>
+      </h2>
+      <div class="food-grid" id="intro-grid">
+        <!-- 由 JavaScript 生成 9 款食物 -->
+      </div>
+    </section>
+
+    <!-- 第三部分：指令練習 -->
+    <section>
+      <h2>第三部分：指令練習</h2>
+
+      <!-- 碟的大相片區域 -->
+      <div class="plate-wrapper">
+        <div class="plate" id="plate" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDropPlate(event)">
+          <div class="plate-empty-hint" id="plate-hint">
+            將下方食物拉到碟上<br>
+            <span style="font-size:0.85rem; font-weight:normal;">（在平板或電腦亦可直接點擊卡片）</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 碟下方的食物圖咭（每行三幅） -->
+      <div class="food-grid" id="practice-grid">
+        <!-- 由 JavaScript 生成 9 個槽位與圖咭 -->
+      </div>
+
+      <!-- 重設按鈕 -->
+      <div class="action-panel">
+        <button class="btn-reset" onclick="resetAllFood()">
+          <span>↺</span> 重設食物
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 作者自訂圖片 URL 彈窗 -->
+  <div class="modal-overlay" id="config-modal">
+    <div class="modal-box">
+      <h3>⚙️ 作者自訂圖片網址設定</h3>
+      <p style="font-size:0.9rem; color:#64748b; margin-bottom:16px;">
+        你可以將此處的網址改為任何外部相片 URL 或校內雲端硬碟連結。儲存後會立即生效並保存在此瀏覽器中。
+      </p>
+
+      <div class="config-field">
+        <label>🍽️ 實物大餐碟相片 URL：</label>
+        <input type="text" id="cfg-plate-url">
+      </div>
+
+      <div id="cfg-foods-container">
+        <!-- 動態產生食物 URL 輸入框 -->
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-close" onclick="restoreDefaults()">恢復預設值</button>
+        <button class="btn-close" onclick="closeConfigModal()">取消</button>
+        <button class="btn-save" onclick="saveConfig()">儲存並套用</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************************
+     * 1. 預設圖片設定（作者可直接在代碼中修改此預設常數）
+     *************************************************************/
+    const DEFAULT_PLATE_IMAGE = 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=800&q=80';
+
+    const DEFAULT_FOODS = [
+      { id: 'egg',          name: '雞蛋', imgUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=400&q=80' },
+      { id: 'sausage',      name: '腸仔', imgUrl: 'https://images.unsplash.com/photo-1585325701165-351af916e581?auto=format&fit=crop&w=400&q=80' },
+      { id: 'veggie',       name: '菜',   imgUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=400&q=80' },
+      { id: 'chicken_wing', name: '雞翼', imgUrl: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=400&q=80' },
+      { id: 'rice',         name: '飯',   imgUrl: 'https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&w=400&q=80' },
+      { id: 'noodles',      name: '麵',   imgUrl: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80' },
+      { id: 'macaroni',     name: '通粉', imgUrl: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80' },
+      { id: 'bread',        name: '麵包', imgUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80' },
+      { id: 'fish_ball',    name: '魚蛋', imgUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=400&q=80' }
+    ];
+
+    /*************************************************************
+     * 2. 資料載入與儲存（支援 LocalStorage 記憶）
+     *************************************************************/
+    function loadSavedConfig() {
+      const savedPlate = localStorage.getItem('cfg_plate_image');
+      const savedFoods = localStorage.getItem('cfg_food_items');
+      return {
+        plateImage: savedPlate || DEFAULT_PLATE_IMAGE,
+        foods: savedFoods ? JSON.parse(savedFoods) : DEFAULT_FOODS
+      };
+    }
+
+    let currentConfig = loadSavedConfig();
+
+    /*************************************************************
+     * 3. 廣東話語音發聲 (zh-HK)
+     *************************************************************/
+    function playCantonese(word) {
+      if (!('speechSynthesis' in window)) {
+        alert('抱歉，此瀏覽器暫未支援語音發聲功能。');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(word);
+      utter.lang = 'zh-HK';
+      utter.rate = 0.85; // 專為特殊教育學童設計的慢速清晰語速
+
+      const voices = window.speechSynthesis.getVoices();
+      const hkVoice = voices.find(v => v.lang === 'zh-HK' || v.lang === 'yue-HK' || v.lang.includes('HK'));
+      if (hkVoice) {
+        utter.voice = hkVoice;
+      }
+      window.speechSynthesis.speak(utter);
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    /*************************************************************
+     * 4. 畫面渲染邏輯
+     *************************************************************/
+    function renderApp() {
+      // 設置實物餐碟背景相片
+      const plateEl = document.getElementById('plate');
+      plateEl.style.backgroundImage = `url('${currentConfig.plateImage}')`;
+
+      // 渲染第二部分：介紹食物九宮格
+      const introGrid = document.getElementById('intro-grid');
+      introGrid.innerHTML = '';
+      currentConfig.foods.forEach(food => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.innerHTML = `
+          <img src="${food.imgUrl}" alt="${food.name}" class="food-img" onerror="handleImgError(this)">
+          <div class="food-name">${food.name}</div>
+          <div class="sound-badge">🔊 點擊發聲</div>
+        `;
+        card.onclick = () => playCantonese(food.name);
+        introGrid.appendChild(card);
+      });
+
+      // 渲染第三部分：練習插槽與實物圖咭
+      const practiceGrid = document.getElementById('practice-grid');
+      practiceGrid.innerHTML = '';
+
+      currentConfig.foods.forEach((food, idx) => {
+        const slot = document.createElement('div');
+        slot.className = 'slot occupied';
+        slot.id = `slot-${idx}`;
+
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.id = `food-${food.id}`;
+        card.draggable = true;
+        card.setAttribute('data-slot', `slot-${idx}`);
+        card.innerHTML = `
+          <img src="${food.imgUrl}" alt="${food.name}" class="food-img" onerror="handleImgError(this)">
+          <div class="food-name">${food.name}</div>
+        `;
+
+        // 拖曳事件
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', card.id);
+        });
+
+        // 平板點擊與觸控支援
+        card.addEventListener('click', () => {
+          if (card.parentElement.id === 'plate') {
+            returnToSlot(card);
+          } else {
+            putOnPlate(card);
+          }
+        });
+
+        slot.appendChild(card);
+        practiceGrid.appendChild(slot);
+      });
+
+      checkPlateState();
+    }
+
+    // 破圖時的備用機制
+    function handleImgError(img) {
+      img.onerror = null;
+      img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90"><rect width="90" height="90" fill="%23e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="28">🍱</text></svg>';
+    }
+
+    /*************************************************************
+     * 5. 拖放及點擊操作處理
+     *************************************************************/
+    const plate = document.getElementById('plate');
+    const plateHint = document.getElementById('plate-hint');
+
+    function onDragOver(e) {
+      e.preventDefault();
+      plate.classList.add('dragover');
+    }
+
+    function onDragLeave(e) {
+      plate.classList.remove('dragover');
+    }
+
+    function onDropPlate(e) {
+      e.preventDefault();
+      plate.classList.remove('dragover');
+      const id = e.dataTransfer.getData('text/plain');
+      const card = document.getElementById(id);
+      if (card) {
+        putOnPlate(card);
+      }
+    }
+
+    function putOnPlate(card) {
+      const oldSlot = card.parentElement;
+      if (oldSlot && oldSlot.classList.contains('slot')) {
+        oldSlot.classList.remove('occupied');
+      }
+      plate.appendChild(card);
+      checkPlateState();
+    }
+
+    function returnToSlot(card) {
+      const slotId = card.getAttribute('data-slot');
+      const slot = document.getElementById(slotId);
+      if (slot) {
+        slot.appendChild(card);
+        slot.classList.add('occupied');
+      }
+      checkPlateState();
+    }
+
+    function checkPlateState() {
+      const cards = plate.querySelectorAll('.food-card');
+      plateHint.style.display = cards.length > 0 ? 'none' : 'block';
+    }
+
+    function resetAllFood() {
+      const cards = plate.querySelectorAll('.food-card');
+      cards.forEach(card => returnToSlot(card));
+      checkPlateState();
+    }
+
+    /*************************************************************
+     * 6. 作者自訂 URL 設定面板相關邏輯
+     *************************************************************/
+    function openConfigModal() {
+      document.getElementById('cfg-plate-url').value = currentConfig.plateImage;
+      const container = document.getElementById('cfg-foods-container');
+      container.innerHTML = '';
+
+      currentConfig.foods.forEach((food, i) => {
+        const div = document.createElement('div');
+        div.className = 'config-field';
+        div.innerHTML = `
+          <label>${i + 1}. ${food.name} 相片網址：</label>
+          <input type="text" id="cfg-food-${food.id}" value="${food.imgUrl}">
+        `;
+        container.appendChild(div);
+      });
+
+      document.getElementById('config-modal').style.display = 'flex';
+    }
+
+    function closeConfigModal() {
+      document.getElementById('config-modal').style.display = 'none';
+    }
+
+    function saveConfig() {
+      const newPlateUrl = document.getElementById('cfg-plate-url').value.trim();
+      const newFoods = currentConfig.foods.map(food => {
+        const input = document.getElementById(`cfg-food-${food.id}`);
+        return {
+          ...food,
+          imgUrl: input ? input.value.trim() : food.imgUrl
+        };
+      });
+
+      currentConfig = {
+        plateImage: newPlateUrl || DEFAULT_PLATE_IMAGE,
+        foods: newFoods
+      };
+
+      localStorage.setItem('cfg_plate_image', currentConfig.plateImage);
+      localStorage.setItem('cfg_food_items', JSON.stringify(currentConfig.foods));
+
+      closeConfigModal();
+      renderApp();
+      alert('✅ 圖片網址已更新並儲存成功！');
+    }
+
+    function restoreDefaults() {
+      if (confirm('確定要恢復為原廠預設的圖片網址嗎？')) {
+        localStorage.removeItem('cfg_plate_image');
+        localStorage.removeItem('cfg_food_items');
+        currentConfig = {
+          plateImage: DEFAULT_PLATE_IMAGE,
+          foods: JSON.parse(JSON.stringify(DEFAULT_FOODS))
+        };
+        closeConfigModal();
+        renderApp();
+        alert('已恢復預設相片！');
+      }
+    }
+
+    // 初始化執行
+    renderApp();
+  </script>
+</body>
+</html>
